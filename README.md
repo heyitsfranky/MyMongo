@@ -79,16 +79,17 @@ func main() {
 ## Configuration
 
 To configure your MongoDB connection, create a JSON configuration file, e.g., MyMongo.config.json, with the following structure:
-´´´json
+
+```json
 {
     "username": "your_username",
     "password": "your_password",
     "host": "localhost",
     "port": "27017"
 }
-´´´
+```
 
-An up-to-date template can always be found under 'src/myMongo/template_MyMongo.config.json'.
+An up-to-date template can *always* be found under 'src/myMongo/template_MyMongo.config.json'.
 
 ## License
 
