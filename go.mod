@@ -1,4 +1,4 @@
-module myMongo
+module github.com/heyitsfranky/MyMongo
 
 go 1.20
 
