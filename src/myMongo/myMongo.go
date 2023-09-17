@@ -6,9 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"reflect"
-	"runtime"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var DBClient *mongo.Client
+var client *mongo.Client
 
 type ActionET int
 
@@ -26,44 +24,35 @@ const (
 	Update
 )
 
-var dbConfig *DBConfig
+var config *Config
 
-type DBConfig struct {
+type Config struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Host     string `json:"host"`
 	Port     string `json:"port"`
 }
 
-func Init() error {
-	_, filename, _, ok := runtime.Caller(0)
-	if ok {
-		packageDir = filepath.Dir(filename)
-	}
-	err := readConfig()
+func Init(configPath string) error {
+	err := readConfig(configPath)
 	if err != nil {
 		return err
 	}
-	clientOptions := options.Client().ApplyURI("mongodb://" + dbConfig.Host + ":" + dbConfig.Port).SetAuth(options.Credential{
-		Username: dbConfig.Username,
-		Password: dbConfig.Password,
+	clientOptions := options.Client().ApplyURI("mongodb://" + config.Host + ":" + config.Port).SetAuth(options.Credential{
+		Username: config.Username,
+		Password: config.Password,
 	})
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	DBClient, err = mongo.Connect(ctx, clientOptions)
+	client, err = mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-var packageDir string
-
-func readConfig() error {
-	if packageDir == "" {
-		return fmt.Errorf("failed to determine package directory")
-	}
-	configFilePath := filepath.Join(packageDir, "dbconfig.json")
+func readConfig(configFilePath string) error {
+	// Remove the packageDir logic, as we're now using the provided configFilePath.
 	configFile, err := os.Open(configFilePath)
 	if err != nil {
 		return err
@@ -75,8 +64,8 @@ func readConfig() error {
 		return err
 	}
 	// Actual checking step
-	dbConfig = &DBConfig{}
-	configValue := reflect.ValueOf(dbConfig).Elem()
+	config = &Config{}
+	configValue := reflect.ValueOf(config).Elem()
 	for i := 0; i < configValue.NumField(); i++ {
 		fieldName := configValue.Type().Field(i).Tag.Get("json")
 		if value, exists := tempConfig[fieldName]; exists {
@@ -88,7 +77,7 @@ func readConfig() error {
 				return fmt.Errorf("unsupported field type for '%s'", fieldName)
 			}
 		} else {
-			return fmt.Errorf("missing key '%s' in dbconfig.json", fieldName)
+			return fmt.Errorf("missing key '%s' in the config file", fieldName)
 		}
 	}
 	return nil
@@ -111,7 +100,7 @@ func CreateFilterQuery(values ...interface{}) string {
 }
 
 func get(filter string, dbName string, collectionName string) (*mongo.Cursor, error) {
-	collection := DBClient.Database(dbName).Collection(collectionName)
+	collection := client.Database(dbName).Collection(collectionName)
 	var filterBson bson.M
 	if filter != "" {
 		err := bson.UnmarshalExtJSON([]byte(filter), true, &filterBson)
@@ -127,7 +116,7 @@ func get(filter string, dbName string, collectionName string) (*mongo.Cursor, er
 }
 
 func PerformDatabaseAction(dbName string, collectionName string, givenAction ActionET, givenData map[string]interface{}) error {
-	collection := DBClient.Database(dbName).Collection(collectionName)
+	collection := client.Database(dbName).Collection(collectionName)
 	var err error
 	uuid, ok := givenData["uuid"].(string)
 	if !ok {

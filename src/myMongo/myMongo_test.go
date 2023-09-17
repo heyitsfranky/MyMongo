@@ -12,31 +12,32 @@ type TestObject struct {
 }
 
 func Test_Init(t *testing.T) {
-	err := Init()
-	defer DBClient.Disconnect(context.Background())
+	configPath := "template_MyMongo.config.json"
+	err := Init(configPath)
+	defer client.Disconnect(context.Background())
 	if err != nil {
 		t.Errorf("Expected no error, but got: %v", err)
 	}
-	if DBClient == nil {
+	if client == nil {
 		t.Error("Expected DBClient to be non-nil after initialization, but it's nil")
 	}
 }
 
 func Test_CreateFilterQuery(t *testing.T) {
 	query := CreateFilterQuery("firstkey", "firstvalue", "nextkey", "nextvalue")
-
 	expectedQuery := `{"firstkey":"firstvalue","nextkey":"nextvalue"}`
-
 	if query != expectedQuery {
 		t.Errorf("Expected query: %s, but got: %s", expectedQuery, query)
 	}
 }
 
 func Test_All_CRUD_Operations(t *testing.T) {
-	// Initialize the MongoDB client
-	if err := Init(); err != nil {
+	configPath := "template_MyMongo.config.json"
+	err := Init(configPath)
+	if err != nil {
 		t.Fatalf("Failed to initialize MongoDB client: %v", err)
 	}
+	defer client.Disconnect(context.Background())
 	testData := []TestObject{
 		{UUID: "1", Name: "Object", Value: 42.0},
 		{UUID: "2", Name: "Object", Value: 37.5},
