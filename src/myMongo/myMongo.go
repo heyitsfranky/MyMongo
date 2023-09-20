@@ -158,7 +158,8 @@ func GetObject[T any](filter string, dbName string, collectionName string) (T, e
 	if err = cur.Err(); err != nil {
 		return elem, err
 	}
-	return elem, errors.New("could not find this object")
+	//no object found
+	return elem, nil
 }
 
 func GetMultipleObjects[T any](filter string, dbName string, collectionName string) ([]T, error) {
@@ -179,8 +180,6 @@ func GetMultipleObjects[T any](filter string, dbName string, collectionName stri
 	if err = cur.Err(); err != nil {
 		return results, err
 	}
-	if len(results) == 0 {
-		return results, errors.New("could not find any matching objects")
-	}
+	//no objects found
 	return results, nil
 }

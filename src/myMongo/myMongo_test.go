@@ -62,6 +62,13 @@ func Test_All_CRUD_Operations(t *testing.T) {
 	if err != nil || obj == nil {
 		t.Fatalf("Failed to retrieve one object: %v", err)
 	}
+	// Step 2.5: Search for non-existent object of type TestObject
+	noObj, err := GetObject[*TestObject](CreateFilterQuery("uuid", "18"), dbName, collectionName)
+	if err != nil {
+		t.Fatalf("Error when trying to get non-existent object: %v", err)
+	} else if noObj != nil {
+		t.Fatalf("Failed trying to get non-existent object: %v", err)
+	}
 	// Step 3: Update all created objects
 	for _, data := range testData {
 		dataMap := map[string]interface{}{
@@ -78,6 +85,13 @@ func Test_All_CRUD_Operations(t *testing.T) {
 	objects, err := GetMultipleObjects[*TestObject](CreateFilterQuery("name", "Object"), dbName, collectionName)
 	if err != nil || objects == nil {
 		t.Fatalf("Failed to retrieve multiple objects: %v", err)
+	}
+	// Step 4.5: Search for non-existent object of type TestObject
+	noObjs, err := GetObject[*TestObject](CreateFilterQuery("uuid", "21"), dbName, collectionName)
+	if err != nil {
+		t.Fatalf("Error when trying to get non-existent object: %v", err)
+	} else if noObjs != nil {
+		t.Fatalf("Failed trying to get non-existent object: %v", err)
 	}
 	// Ensure the expected number of objects is retrieved
 	if len(objects) != len(testData) {
