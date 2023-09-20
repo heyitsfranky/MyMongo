@@ -83,6 +83,9 @@ func readConfig(configFilePath string) error {
 	return nil
 }
 
+// Creates simple filter queries
+// i.e. "key1", "value1", "key2", "value2", etc.
+// e.g. "id", 5, "name", "John", "age", 42
 func CreateFilterQuery(values ...interface{}) string {
 	query := make(map[string]interface{})
 	for i := 0; i < len(values); i += 2 {
@@ -182,4 +185,26 @@ func GetMultipleObjects[T any](filter string, dbName string, collectionName stri
 	}
 	//no objects found
 	return results, nil
+}
+
+// Creates a complex BSON filter query
+// i.e. bson.M{"key": bson.M{"operation": value}}
+// e.g. bson.M{"age": bson.M{"$ne": 42}}
+func CreateAdvancedFilterQuery(key string, operation string, value interface{}) string {
+	filter := bson.M{key: bson.M{operation: value}}
+	jsonBytes, err := bson.MarshalExtJSON(filter, true, false)
+	if err != nil {
+		panic(err)
+	}
+	return string(jsonBytes)
+}
+
+// Takes any BSON and creates a filter query
+// Allows for more flexibility than CreateAdvancedFilterQuery, however bson.M must then be included in the package that is calling this function.
+func CreateBSONFilterQuery(filter bson.M) string {
+	jsonBytes, err := bson.MarshalExtJSON(filter, true, false)
+	if err != nil {
+		panic(err)
+	}
+	return string(jsonBytes)
 }

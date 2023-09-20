@@ -3,6 +3,8 @@ package myMongo
 import (
 	"context"
 	"testing"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type TestObject struct {
@@ -106,5 +108,52 @@ func Test_All_CRUD_Operations(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to delete object: %v", err)
 		}
+	}
+}
+
+func TestCreateAdvancedFilterQuery(t *testing.T) {
+	tests := []struct {
+		name      string
+		key       string
+		operation string
+		value     interface{}
+		expected  string
+	}{
+		{"Valid filter", "hot_streak", "$ne", 0, `{"hot_streak":{"$ne":{"$numberInt":"0"}}}`},
+		{"Valid filter", "name", "$eq", "mynamisthis", `{"name":{"$eq":"mynamisthis"}}`},
+		{"Invalid operation", "hot_streak", "$ne$", 0, `{"hot_streak":{"$ne$":{"$numberInt":"0"}}}`},
+		{"Invalid key type", "hot_streak", "$ne", 0, `{"hot_streak":{"$ne":{"$numberInt":"0"}}}`},
+		{"Invalid value type", "name", "$eq", 123, `{"name":{"$eq":{"$numberInt":"123"}}}`},
+		{"Unsupported value type", "name", "$eq", []string{}, `{"name":{"$eq":[]}}`},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			filterStr := CreateAdvancedFilterQuery(test.key, test.operation, test.value)
+			if filterStr != test.expected {
+				t.Errorf("Expected filter string: %s, got: %s", test.expected, filterStr)
+			}
+		})
+	}
+}
+
+func Test_CreateBSONFilterQuery(t *testing.T) {
+	tests := []struct {
+		name     string
+		filter   bson.M
+		expected string
+	}{
+		{"Valid filter", bson.M{"hot_streak": bson.M{"$ne": 0}}, `{"hot_streak":{"$ne":{"$numberInt":"0"}}}`},
+		{"Valid filter", bson.M{"name": "mynamisthis", "age": bson.M{"$gt": 25}}, `{"name":"mynamisthis","age":{"$gt":{"$numberInt":"25"}}}`},
+		{"Nil filter", nil, "{}"},
+		{"Unsupported nested type", bson.M{"name": map[string]int{}}, `{"name":{}}`},
+		{"Invalid operation", bson.M{"name": bson.M{"$eq$": 123}}, `{"name":{"$eq$":{"$numberInt":"123"}}}`},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			filterStr := CreateBSONFilterQuery(test.filter)
+			if filterStr != test.expected {
+				t.Errorf("Expected filter string: %s, got: %s", test.expected, filterStr)
+			}
+		})
 	}
 }
