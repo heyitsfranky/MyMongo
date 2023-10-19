@@ -1,4 +1,4 @@
-package myMongo
+package MyMongo
 
 import (
 	"context"

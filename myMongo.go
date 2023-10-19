@@ -1,4 +1,4 @@
-package myMongo
+package MyMongo
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/heyitsfranky/MyConfig/src/myConfig"
+	"github.com/heyitsfranky/MyConfig"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -34,7 +34,7 @@ type InitData struct {
 
 func Init(configPath string) error {
 	if Data == nil {
-		err := myConfig.Init(configPath, &Data)
+		err := MyConfig.Init(configPath, &Data)
 		if err != nil {
 			return err
 		}
