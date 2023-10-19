@@ -4,11 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"os"
-	"reflect"
+	"strconv"
 	"time"
 
+	"github.com/heyitsfranky/MyConfig/src/myConfig"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -24,61 +23,32 @@ const (
 	Update
 )
 
-var config *Config
+var Data *InitData
 
-type Config struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Host     string `json:"host"`
-	Port     string `json:"port"`
+type InitData struct {
+	Username string `yaml:"mongo-username"`
+	Password string `yaml:"mongo-password"`
+	Host     string `yaml:"mongo-host"`
+	Port     int    `yaml:"mongo-port"`
 }
 
 func Init(configPath string) error {
-	err := readConfig(configPath)
-	if err != nil {
-		return err
+	if Data == nil {
+		err := myConfig.Init(configPath, &Data)
+		if err != nil {
+			return err
+		}
 	}
-	clientOptions := options.Client().ApplyURI("mongodb://" + config.Host + ":" + config.Port).SetAuth(options.Credential{
-		Username: config.Username,
-		Password: config.Password,
+	clientOptions := options.Client().ApplyURI("mongodb://" + Data.Host + ":" + strconv.Itoa(Data.Port)).SetAuth(options.Credential{
+		Username: Data.Username,
+		Password: Data.Password,
 	})
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	var err error
 	client, err = mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-func readConfig(configFilePath string) error {
-	// Remove the packageDir logic, as we're now using the provided configFilePath.
-	configFile, err := os.Open(configFilePath)
-	if err != nil {
-		return err
-	}
-	defer configFile.Close()
-	var tempConfig map[string]interface{}
-	decoder := json.NewDecoder(configFile)
-	if err := decoder.Decode(&tempConfig); err != nil {
-		return err
-	}
-	// Actual checking step
-	config = &Config{}
-	configValue := reflect.ValueOf(config).Elem()
-	for i := 0; i < configValue.NumField(); i++ {
-		fieldName := configValue.Type().Field(i).Tag.Get("json")
-		if value, exists := tempConfig[fieldName]; exists {
-			configFieldValue := configValue.Field(i)
-			configFieldType := configFieldValue.Type()
-			if configFieldType.Kind() == reflect.String {
-				configFieldValue.SetString(value.(string))
-			} else {
-				return fmt.Errorf("unsupported field type for '%s'", fieldName)
-			}
-		} else {
-			return fmt.Errorf("missing key '%s' in the config file", fieldName)
-		}
 	}
 	return nil
 }

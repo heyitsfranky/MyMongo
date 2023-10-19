@@ -13,9 +13,10 @@ type TestObject struct {
 	Value float64 `json:"value"`
 }
 
+const CONFIG_PATH = "template_MyMongo.cfg.yaml"
+
 func Test_Init(t *testing.T) {
-	configPath := "template_MyMongo.config.json"
-	err := Init(configPath)
+	err := Init(CONFIG_PATH)
 	defer client.Disconnect(context.Background())
 	if err != nil {
 		t.Errorf("Expected no error, but got: %v", err)
@@ -34,8 +35,7 @@ func Test_CreateFilterQuery(t *testing.T) {
 }
 
 func Test_All_CRUD_Operations(t *testing.T) {
-	configPath := "template_MyMongo.config.json"
-	err := Init(configPath)
+	err := Init(CONFIG_PATH)
 	if err != nil {
 		t.Fatalf("Failed to initialize MongoDB client: %v", err)
 	}

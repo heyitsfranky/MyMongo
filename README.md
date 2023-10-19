@@ -31,7 +31,7 @@ import (
 
 func main() {
     // Initialize the MongoDB client with a configuration file path.
-    if err := myMongo.Init("path/to/your/config.json"); err != nil {
+    if err := myMongo.Init("path/to/your/config.yaml"); err != nil {
         fmt.Printf(err)
         return
     }
@@ -78,18 +78,16 @@ func main() {
 
 ## Configuration
 
-To configure your MongoDB connection, create a JSON configuration file, e.g., MyMongo.config.json, with the following structure:
+To configure your MongoDB connection, create a YAML configuration file with the following structure:
 
-```json
-{
-    "username": "your_username",
-    "password": "your_password",
-    "host": "localhost",
-    "port": "27017"
-}
+```yaml
+mongo-username: your_username,
+mongo-password: your_password,
+mongo-host: localhost,
+mongo-port: 27017
 ```
 
-An up-to-date template can *always* be found under 'src/myMongo/template_MyMongo.config.json'.
+An up-to-date template can *always* be found under 'template_MyMongo.cfg.yaml'.
 
 ## License
 
