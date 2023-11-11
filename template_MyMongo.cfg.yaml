@@ -1,4 +1,4 @@
-mongo-username: root
-mongo-password: root
-mongo-host: localhost
-mongo-port: 27017
+mongo_username: root
+mongo_password: root
+mongo_host: localhost
+mongo_port: 27017

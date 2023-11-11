@@ -26,10 +26,10 @@ const (
 var Data *InitData
 
 type InitData struct {
-	Username string `yaml:"mongo-username"`
-	Password string `yaml:"mongo-password"`
-	Host     string `yaml:"mongo-host"`
-	Port     int    `yaml:"mongo-port"`
+	Username string `yaml:"mongo_username"`
+	Password string `yaml:"mongo_password"`
+	Host     string `yaml:"mongo_host"`
+	Port     int    `yaml:"mongo_port"`
 }
 
 func Init(configPath string) error {
